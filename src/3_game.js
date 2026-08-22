@@ -1,15 +1,15 @@
 // Game state, economy and simulation. Rendering lives in 5_scene / 6_ui.
-const KEY = 'ufr3';
+const KEY = 'ufr4';
 const G = { m: 0, sold: 0, junk: 0, mu: 0, st: 0, u: UP.map(() => 0) };
 
 let stack = [], bad = -1, done = 0, drop = [], utx = .5;
 let spawnT = 0, shake = 0, badF = 0, urun = 0, ulean = 0;
-let scrapT = 0, cutT = 0, autoT = 0, aimOn = 0, shopOn = 0, rstArm = 0, ugait = 0;
+let runT = 0, scrapT = 0, cutT = 0, autoT = 0, aimOn = 0, shopOn = 0, rstArm = 0, ugait = 0;
 let fly = 0, flyX = 0, flyDir = 1, flyStack = [];
 const APP = [];
 
-const upCost = i => { const f = UP[i][5]; return f ? f[G.u[i]] : flr(UP[i][2] * pow(UP[i][3], G.u[i])) };
-const upMax = i => G.u[i] >= UP[i][4];
+const upCost = i => UP[i][2][G.u[i]];
+const upMax = i => G.u[i] >= UP[i][2].length;
 const uv = i => { const a = UV[i]; return a ? a[upMax(i) ? G.u[i] : G.u[i] + 1] : 0 };
 const upDesc = i => UP[i][1].replace('@', uv(i));
 const upBuy = i => {
@@ -124,7 +124,7 @@ const apprentices = dt => {
   APP.forEach((a, i) => {
     const ty = aTy(i), sc = aSc(i);
     a.st.forEach(r => { if (r.p < 1) r.p = min(1, r.p + dt * 5) });
-    a.g += dt * (4 + a.rn * 16);
+    a.g += dt * (3 + a.rn * 8);
     a.sp -= dt;
     if (a.sp <= 0) {
       a.sp = AGAP * rr(.8, 1.2) / RATE[G.u[U_RATE]];
@@ -189,10 +189,17 @@ const upGame = dt => {
   const px = HX, tg = FX + MG + utx * (FW - MG * 2), mv = FW * 1.3 * dt;
   HX = clamp(HX + clamp(tg - HX, -mv, mv), FX + MG, FX + FW - MG);
   const vx = (HX - px) / dt;
-  ulean = lerp(ulean, clamp(vx / (FW * .6), -1, 1), .25);
-  urun = lerp(urun, min(abs(vx) / (FW * .18), 1), .3);
-  ugait += dt * (4 + urun * 16);
-  if (urun > .45 && rnd() < dt * 22) burst(HX + rr(-US * .3, US * .3), UY - US * .03, 1, hsl(280, 60, 88, .8));
+  // A mouse flick lasts a handful of frames, and while it crosses the screen the
+  // unicorn is a blur under the cursor, so the gallop is only readable once it has
+  // stopped. Latch the run on for a moment after every move: the stride then plays
+  // out with the unicorn standing still, which is the only time it can be seen.
+  const rt = min(abs(vx) / (FW * .18), 1);
+  if (rt > .3) runT = .15;
+  runT = max(0, runT - dt);
+  ulean = lerp(ulean, clamp(vx / (FW * .6), -1, 1), rt > .3 ? .25 : .09);
+  urun = lerp(urun, runT > 0 ? 1 : 0, runT > 0 ? .35 : .16);
+  ugait += dt * (3 + urun * 8);
+  if (rt > .45 && rnd() < dt * 22) burst(HX + rr(-US * .3, US * .3), UY - US * .03, 1, hsl(280, 60, 88, .8));
 
   if (fly) {
     fly += dt;
@@ -207,14 +214,16 @@ const upGame = dt => {
   spawnT -= dt;
   if (spawnT <= 0) { spawnT = gap() * rr(.85, 1.2); spawn() }
 
-  const live = bad < 0 && !done && !busy();
+  // Re-checked per ring: a catch can complete or ruin the rainbow, and every
+  // later ring in the same frame must see that.
+  const live = () => bad < 0 && !done && !busy();
   const mr = US * MAGR[G.u[U_MAG]], mp = FW * MAGP[G.u[U_MAG]] * dt;
   const wh = FH * WRDH[G.u[U_WRD]];
   aimOn = 0;
   for (let i = drop.length; i--;) {
     const r = drop[i];
     r.py = r.y; r.y += r.v * dt; r.w += dt * 2;
-    if (live && r.y < TY) {
+    if (live() && r.y < TY) {
       const dx = r.x - HX;
       if (r.c == need()) {
         if (G.u[U_MAG] && abs(dx) < mr) r.x -= clamp(dx, -mp, mp);
@@ -228,7 +237,7 @@ const upGame = dt => {
         }
       }
     }
-    if (live && r.py < TY && r.y >= TY && abs(r.x - HX) < tol(r.c)) { grab(r); drop.splice(i, 1); continue }
+    if (live() && r.py < TY && r.y >= TY && abs(r.x - HX) < tol(r.c)) { grab(r); drop.splice(i, 1); continue }
     if (r.y > FY + FH + RS * 2) drop.splice(i, 1);
   }
   stack.forEach(r => { if (r.p < 1) r.p = min(1, r.p + dt * 5) });
@@ -257,7 +266,7 @@ const load = () => {
     const d = JSON.parse(localStorage[KEY]);
     if (!d) return;
     G.m = d[0] | 0; G.sold = d[1] | 0; G.junk = d[2] | 0; G.mu = d[3] | 0; G.st = d[4] | 0;
-    if (d[5]) for (let i = 0; i < UP.length; i++) G.u[i] = min(d[5][i] | 0, UP[i][4]);
+    if (d[5]) for (let i = 0; i < UP.length; i++) G.u[i] = min(d[5][i] | 0, UP[i][2].length);
     syncApp();
   } catch (e) { }
 };

@@ -1,4 +1,4 @@
-const VER = 'v0.14';
+const VER = 'v0.20';
 
 // Rainbow palette, one entry per ring colour, bottom of the horn first.
 const HUE = [354, 24, 52, 128, 190, 248, 305];
@@ -19,21 +19,22 @@ const ASPD = .7;     // apprentice speed, relative to the player
 const AGAP = 2.2;    // seconds between an apprentice's guaranteed rings
 const DBG = 500;     // debug button payout
 
-// Upgrades: name, description, base cost, cost multiplier, max level,
-// and optionally an explicit cost per level that overrides the multiplier.
-// '@' in a description is replaced by the matching UV entry for the next level.
+// Upgrades: name, description, and the cost of each level. The number of costs
+// is the max level. '@' in a description is replaced by the matching UV entry
+// for the next level. Prices are fitted to a measured income curve so the wait
+// for the next upgrade starts near half a minute and grows gradually to minutes.
 const U_AIM = 0, U_CAL = 1, U_SAW = 2, U_MAG = 3, U_WRD = 4, U_OVR = 5, U_RATE = 6, U_STK = 7, U_AUT = 8, U_APP = 9;
 const UP = [
-  ['Aim Glint', 'horn flashes when your ring lines up', 8, 1, 1],
-  ['Calibration', 'the colour you need falls @% of the time', 15, 2.8, 4, [15, 42, 117, 9999]],
-  ['Horn Saw', 'cut off just the last ring', 25, 1, 1],
-  ['Colour Magnet', 'the ring you need drifts to your horn', 40, 2.6, 3],
-  ['Colour Ward', 'wrong rings sidestep the horn @', 60, 2.8, 3],
-  ['Overdrive', 'rings fall @% faster, so money lands sooner', 90, 2.7, 3],
-  ['Overtime', 'the whole factory drops @% more rings', 110, 2.7, 3],
-  ['Perfect Streak', 'clean sales pay up to +$@ extra', 55, 2.7, 3],
-  ['Auto Sell', 'finished unicorns sell themselves', 80, 1, 1],
-  ['Apprentice', 'one more helper unicorn behind you (@ total)', 200, 3, 6, [200, 550, 1400, 3200, 7000, 14000]]
+  ['Aim Glint', 'horn flashes when your ring lines up', [5]],
+  ['Calibration', 'the colour you need falls @% of the time', [7, 22, 125, 9999]],
+  ['Horn Saw', 'cut off just the last ring', [10]],
+  ['Colour Magnet', 'the ring you need drifts to your horn', [18, 60, 230]],
+  ['Colour Ward', 'wrong rings sidestep the horn @', [45, 145, 425]],
+  ['Overdrive', 'rings fall @% faster, so money lands sooner', [26, 110, 310]],
+  ['Overtime', 'the whole factory drops @% more rings', [50, 160, 475]],
+  ['Perfect Streak', 'clean sales pay up to +$@ extra', [14, 90, 265]],
+  ['Auto Sell', 'finished unicorns sell themselves', [65]],
+  ['Apprentice', 'one more helper unicorn behind you (@ total)', [32, 75, 195, 365, 600, 800]]
 ];
 const UV = [0, [42, 55, 65, 75, 99.99], 0, 0, ['', 'at the last moment', 'well ahead', 'half a screen ahead'], [0, 25, 55, 90], [0, 30, 65, 110], [0, 3, 6, 9], 0, [0, 1, 2, 3, 4, 5, 6]];
 

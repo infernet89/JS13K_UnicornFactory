@@ -126,11 +126,15 @@ const drawBg = () => {
 
 // Rings threaded on a horn. ty is the tip they slide down from, ln the lean:
 // the whole tower rotates with the body and each ring lags a little more than the one below.
-const drawStack = (st, x, by, sc, ru, ln, ty) => {
-  const l = ln || 0;
+// gt/rn are the gait phase and run amount: the tower rides the same body bob as
+// the unicorn, each ring lagging a little more than the one below it so the stack
+// whips instead of moving as one rigid piece.
+const drawStack = (st, x, by, sc, ru, ln, ty, gt, rn) => {
+  const l = ln || 0, cd = gt || 0, rr0 = rn || 0;
   X.save(); X.translate(x, by); X.rotate(l * LNA); X.translate(-x, -by);
   for (let i = 0; i < st.length; i++) {
-    const r = st[i], y = lerp(ty, by - SOFF[i] * sc, r.p * r.p);
+    const r = st[i], bo = abs(sin(cd - i * .22)) * US * .09 * sc * rr0;
+    const y = lerp(ty, by - SOFF[i] * sc, r.p * r.p) - bo;
     ring(x - l * RS * .55 * sc * pow((i + 1) / NR, 1.8), y, rsz(r.c) * sc, r.c, ru == i ? 1 : 0, sin(TIME * 2 + i) * .02 - l * .1);
   }
   X.restore();
@@ -160,7 +164,7 @@ const drawFly = (fx, dir, by, sc, ft, st, al) => {
     const q = flyPos(fx, dir, by, sc, u);
     X.save(); X.translate(q[0], q[1]); X.rotate(dir * .35 * u); X.translate(-q[0], -q[1]);
     uni(q[0], q[1], US * sc, TIME, 1, 1, dir * .5, ugait);
-    drawStack(st, q[0], q[1], sc, -1, dir * .5, tipY(q[1], sc));
+    drawStack(st, q[0], q[1], sc, -1, dir * .5, tipY(q[1], sc), ugait, 1);
     X.restore();
   }
 };
@@ -192,10 +196,10 @@ const drawWorld = () => {
     if (a.fl) drawFly(a.fx, a.fd, uy, sc, a.fl, a.fs, al);
     const q = pose(a.fl, a.fd, a.x, sc);
     if (q[2]) {
-      const ln = a.fl ? q[1] : a.ln;
+      const ln = a.fl ? q[1] : a.ln + sin(a.g) * .3 * a.rn;
       X.globalAlpha = al;
       uni(q[0], uy, US * sc, TIME + 1.7 + i * .9, 0, a.fl ? 1 : a.rn, ln, a.g);
-      drawStack(a.st, q[0], uy, sc, -1, ln, aTy(i));
+      drawStack(a.st, q[0], uy, sc, -1, ln, aTy(i), a.g, a.fl ? 1 : a.rn);
     }
   }
   X.globalAlpha = 1;
@@ -203,9 +207,9 @@ const drawWorld = () => {
   if (fly) drawFly(flyX, flyDir, UY, 1, fly, flyStack, 1);
   const q = pose(fly, flyDir, HX, 1);
   if (q[2]) {
-    const ln = fly ? q[1] : ulean + (scrapT > 0 ? sin(scrapT * 54) * (scrapT / .55) * 1.9 : 0);
+    const ln = fly ? q[1] : ulean + sin(ugait) * .3 * urun + (scrapT > 0 ? sin(scrapT * 54) * (scrapT / .55) * 1.9 : 0);
     uni(q[0], UY, US, TIME, done, fly ? 1 : urun, ln, ugait);
-    drawStack(stack, q[0], UY, 1, bad, ln, TY);
+    drawStack(stack, q[0], UY, 1, bad, ln, TY, ugait, fly ? 1 : urun);
     if (aimOn) drawGlint();
   }
 

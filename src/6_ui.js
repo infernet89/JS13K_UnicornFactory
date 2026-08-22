@@ -111,7 +111,7 @@ const drawShop = () => {
     txt(upDesc(i), tx, cy + FS * .35, FS * .68, '#a794cf', 'left');
     txt(mx ? 'MAX' : '$' + c, rx, cy - FS * .68, FS * 1.02, mx || ok ? '#7ce38b' : '#6d5c93', 'right', 'bold');
     const pw = FS * .5;
-    for (let k = 0; k < UP[i][4]; k++) {
+    for (let k = 0; k < UP[i][2].length; k++) {
       X.fillStyle = k < G.u[i] ? '#ffcf5c' : '#4a3a70';
       dot(rx - k * pw * 1.5, cy + FS * .5, pw * .34);
     }

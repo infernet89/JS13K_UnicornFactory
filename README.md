@@ -20,13 +20,16 @@ The version badge next to the mute button comes from `VER` in `src/1_core.js` â€
 
 | file | role |
 |---|---|
-| `1_core.js` | canvas, input, number formatting, draw helpers |
-| `2_data.js` | rainbow palette, upgrade table |
-| `3_game.js` | state, ring spawning, catch/cut/scrap/sell, upgrades, apprentice AI, save/load |
-| `4_art.js` | procedural art: unicorn, ring, star |
-| `5_view.js` | responsive layout, scene, order sidebar, buttons, upgrade shop |
-| `6_audio.js` | WebAudio synth |
-| `7_main.js` | resize, click/key routing, game loop |
+| `1_core.js` | canvas handle, input state, drawing primitives |
+| `2_data.js` | palette, tuning constants, upgrade table |
+| `3_game.js` | state, economy, simulation, apprentice AI, save/load |
+| `4_art.js` | procedural art: unicorn, ring, cloud, star |
+| `5_scene.js` | responsive layout and everything inside the play field |
+| `6_ui.js` | order sidebar, top bar, action buttons, upgrade panel |
+| `7_audio.js` | WebAudio synth |
+| `8_main.js` | resize, click/key routing, game loop, frame composition |
+
+Terser strips comments, so comments in `src/` cost nothing in the shipped zip â€” explain freely.
 
 ## Controls
 

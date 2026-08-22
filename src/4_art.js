@@ -117,10 +117,10 @@ const uni = (x, y, s, t, glow, run, ln, gt) => {
   tri(-.142, -.928, -.172 + et, -1.0, -.095, -.945);
   tri(.142, -.928, .172 - et, -1.0, .095, -.945);
 
-  const hg = X.createLinearGradient(-.05, -.9, .05, -1.69);
+  const hg = X.createLinearGradient(-.05, -.9, .05, -HORN);
   hg.addColorStop(0, '#f3b52c'); hg.addColorStop(.5, '#ffe08a'); hg.addColorStop(1, '#fffdf0');
   X.fillStyle = hg;
-  X.beginPath(); X.moveTo(-.058, -.9); X.lineTo(.058, -.9); X.lineTo(0, -1.69); X.closePath(); X.fill();
+  X.beginPath(); X.moveTo(-.058, -.9); X.lineTo(.058, -.9); X.lineTo(0, -HORN); X.closePath(); X.fill();
   X.strokeStyle = '#d9992a'; X.lineWidth = .011;
   for (let i = 1; i < 11; i++) {
     const f = i / 11, w = .056 * (1 - f);

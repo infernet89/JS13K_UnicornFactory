@@ -61,8 +61,12 @@ const frame = t => {
     upGame(dt); upView(dt);
   }
   IN.dy = 0; IN.w = 0;
+
   X.clearRect(0, 0, W, H);
-  draw();
+  drawWorld();
+  drawRef();
+  drawUI();
+  if (shopOn) drawShop();
 };
 
 addEventListener('resize', resize);

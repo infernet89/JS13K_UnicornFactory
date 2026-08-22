@@ -1,23 +1,43 @@
+const VER = 'v0.14';
+
+// Rainbow palette, one entry per ring colour, bottom of the horn first.
 const HUE = [354, 24, 52, 128, 190, 248, 305];
 const SAT = [88, 92, 95, 68, 85, 72, 80];
 const LIT = [58, 48, 65, 46, 56, 55, 64];
-const NR = 7;
-const PAY = 5;
-const DBG = 500;
+const NR = HUE.length;
 const RC = (i, d, a) => hsl(HUE[i], SAT[i], LIT[i] + (d || 0), a);
 
-const U_AIM = 0, U_CAL = 1, U_SAW = 2, U_MAG = 3, U_WRD = 4, U_STK = 5, U_AUT = 6, U_APP = 7;
+// Geometry, in unicorn-heights above the hooves.
+const HORN = 1.69;   // horn tip, i.e. the catch line
+const LNA = .17;     // radians of body tilt at full running speed
+
+// Sale flyaway, as fractions of FLYT.
+const FLYT = 1.05, FLY_UP = .62, FLY_IN = .44;
+
+const PAY = 5;       // dollars per unicorn
+const ASPD = .7;     // apprentice speed, relative to the player
+const AGAP = 2.2;    // seconds between an apprentice's guaranteed rings
+const DBG = 500;     // debug button payout
+
+// Upgrades: name, description, base cost, cost multiplier, max level,
+// and optionally an explicit cost per level that overrides the multiplier.
+// '@' in a description is replaced by the matching UV entry for the next level.
+const U_AIM = 0, U_CAL = 1, U_SAW = 2, U_MAG = 3, U_WRD = 4, U_OVR = 5, U_RATE = 6, U_STK = 7, U_AUT = 8, U_APP = 9;
 const UP = [
   ['Aim Glint', 'horn flashes when your ring lines up', 8, 1, 1],
   ['Calibration', 'the colour you need falls @% of the time', 15, 2.8, 4, [15, 42, 117, 9999]],
   ['Horn Saw', 'cut off just the last ring', 25, 1, 1],
   ['Colour Magnet', 'the ring you need drifts to your horn', 40, 2.6, 3],
-  ['Colour Ward', 'rings of the wrong colour veer away', 60, 2.8, 3],
+  ['Colour Ward', 'wrong rings sidestep the horn @', 60, 2.8, 3],
+  ['Overdrive', 'rings fall @% faster, so money lands sooner', 90, 2.7, 3],
+  ['Overtime', 'the whole factory drops @% more rings', 110, 2.7, 3],
   ['Perfect Streak', 'clean sales pay up to +$@ extra', 55, 2.7, 3],
   ['Auto Sell', 'finished unicorns sell themselves', 80, 1, 1],
-  ['Apprentice', 'one more helper unicorn behind you (@ total)', 200, 3, 4]
+  ['Apprentice', 'one more helper unicorn behind you (@ total)', 200, 3, 6, [200, 550, 1400, 3200, 7000, 14000]]
 ];
-const UV = [0, [42, 55, 65, 75, 99.99], 0, 0, 0, [0, 3, 6, 9], 0, [0, 1, 2, 3, 4]];
-const ASPD = .7, AGAP = 3.2;
-const MAGR = [0, 1, 1.7, 2.6], MAGP = [0, .3, .5, .75];
-const WRDR = [0, .9, 1.4, 2.1], WRDP = [0, .3, .5, .75];
+const UV = [0, [42, 55, 65, 75, 99.99], 0, 0, ['', 'at the last moment', 'well ahead', 'half a screen ahead'], [0, 25, 55, 90], [0, 30, 65, 110], [0, 3, 6, 9], 0, [0, 1, 2, 3, 4, 5, 6]];
+
+const MAGR = [0, 1, 1.7, 2.6], MAGP = [0, .3, .5, .75];   // magnet radius (unicorn-heights), pull (field-widths/s)
+const WRDH = [0, .12, .28, .5];                           // ward trigger height, fraction of the field
+const OVR = [1, 1.25, 1.55, 1.9];                         // fall speed multiplier
+const RATE = [1, 1.3, 1.65, 2.1];                         // spawn rate multiplier, players and helpers alike

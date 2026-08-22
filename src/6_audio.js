@@ -20,3 +20,6 @@ const sBad = () => { tone(180, .3, 'sawtooth', .07, 70); tone(92, .34, 'square',
 const sDone = () => arp([784, 988, 1175, 1568], .07, 'triangle', .08, .5);
 const sSell = () => { arp([1047, 1319, 1568, 2093], .055, 'sine', .09, .35); tone(660, .12, 'square', .04, 1320) };
 const sScrap = () => { tone(420, .28, 'sawtooth', .06, 90); tone(210, .3, 'triangle', .045, 60, .04) };
+const sCut = () => { tone(880, .07, 'square', .035, 520); tone(300, .12, 'triangle', .035, 180, .05) };
+const sApp = n => { tone(SC[n - 1] * 1.5, .07, 'sine', .028) };
+const sBuy = () => arp([659, 880, 1319], .05, 'triangle', .07, .3);

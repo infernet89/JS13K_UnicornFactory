@@ -35,7 +35,7 @@ C.addEventListener('pointercancel', _up);
 addEventListener('wheel', e => { IN.w += e.deltaY; e.preventDefault() }, { passive: false });
 addEventListener('contextmenu', e => e.preventDefault());
 
-const VER = 'v0.5';
+const VER = 'v0.11';
 const LNA = .17;
 const K = {};
 addEventListener('keydown', e => { au(); K[e.key] = 1; if (e.key == ' ' || e.key.slice(0, 5) == 'Arrow') e.preventDefault() });

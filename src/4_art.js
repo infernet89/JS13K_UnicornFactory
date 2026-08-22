@@ -48,8 +48,8 @@ const leg = (x, w, sw, col, hoof) => {
   box(x - w / 2 + sw - .006, -.062 - lf, w + .012, .062, .02); X.fill();
 };
 
-const uni = (x, y, s, t, glow, run, ln) => {
-  const lean = ln || 0, r = run || 0, cd = t * (9 + r * 13);
+const uni = (x, y, s, t, glow, run, ln, gt) => {
+  const lean = ln || 0, r = run || 0, cd = gt || 0;
   X.save(); X.translate(x, y); X.rotate(lean * LNA);
   X.translate(0, sin(t * 3) * s * .012 - abs(sin(cd)) * s * .038 * r); X.scale(s, s);
   const W1 = '#fffaff', W2 = '#e3d2f7', SH = '#f0e4ff', HO = '#b79ce0', DK = '#3b2a58';

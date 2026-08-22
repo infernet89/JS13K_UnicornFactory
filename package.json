@@ -1,0 +1,27 @@
+{
+  "name": "unicorn-factory",
+  "version": "1.0.0",
+  "description": "My entry for JS13KGames 2026",
+  "main": "index.js",
+  "scripts": {
+    "build": "node tools/build.js",
+    "fast": "node tools/build.js --fast"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/infernet89/JS13K_UnicornFactory.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/infernet89/JS13K_UnicornFactory/issues"
+  },
+  "homepage": "https://github.com/infernet89/JS13K_UnicornFactory#readme",
+  "devDependencies": {
+    "html-minifier-terser": "^7.2.0",
+    "roadroller": "^2.1.0",
+    "terser": "^5.50.0"
+  },
+  "private": true
+}

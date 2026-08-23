@@ -18,6 +18,9 @@ const cloud = (x, y, r) => {
   X.fill();
 };
 
+// The numeral is a colour-blind aid: four of the seven hues collapse together for
+// a deuteranope, and the 7.5% size taper between neighbours is far too small to
+// tell them apart on its own.
 const ring = (x, y, rx, ci, ruin, tilt) => {
   const ry = rx * .4, t = rx * .33;
   const hu = HUE[ci], s = ruin ? 10 : SAT[ci], l = ruin ? 34 : LIT[ci];
@@ -34,6 +37,7 @@ const ring = (x, y, rx, ci, ruin, tilt) => {
   X.beginPath(); X.ellipse(0, 0, rx, ry, 0, 0, TAU); X.stroke();
   X.strokeStyle = hsl(hu, 100, ruin ? 60 : 86, .75); X.lineWidth = max(1, t * .3);
   X.beginPath(); X.ellipse(0, -ry * .3, rx - t * .5, ry * .5, 0, PI * 1.12, PI * 1.88); X.stroke();
+  txt(ci + 1, 0, 0, rx * .62, hsl(hu, 94, 92, .82), 'center', 'bold');
   X.restore();
 };
 

@@ -40,6 +40,11 @@ addEventListener('blur', () => { for (const k in K) K[k] = 0 });
 const dot = (x, y, r) => { X.beginPath(); X.arc(x, y, r, 0, TAU); X.fill() };
 const tri = (a, b, c, d, e, f) => { X.beginPath(); X.moveTo(a, b); X.lineTo(c, d); X.lineTo(e, f); X.closePath(); X.fill() };
 const box = (x, y, w, h, r) => { X.beginPath(); X.roundRect(x, y, w, h, r) };
+// Filled rounded rect with an optional outline: every panel, pill and button.
+const plate = (x, y, w, h, r, fill, line, lw) => {
+  X.fillStyle = fill; box(x, y, w, h, r); X.fill();
+  if (line) { X.strokeStyle = line; X.lineWidth = lw || 1; X.stroke() }
+};
 const txt = (s, x, y, sz, col, al, w) => {
   X.font = (w ? w + ' ' : '') + sz + 'px system-ui,Segoe UI,sans-serif';
   X.fillStyle = col; X.textAlign = al || 'left'; X.textBaseline = 'middle';

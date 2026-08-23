@@ -23,3 +23,30 @@ const sScrap = () => { tone(420, .28, 'sawtooth', .06, 90); tone(210, .3, 'trian
 const sCut = () => { tone(880, .07, 'square', .035, 520); tone(300, .12, 'triangle', .035, 180, .05) };
 const sApp = n => { tone(SC[n - 1] * 1.5, .07, 'sine', .028) };
 const sBuy = () => arp([659, 880, 1319], .05, 'triangle', .07, .3);
+
+// One slow arpeggio, with layers that switch on as the factory grows: the
+// place literally sounds richer the more you have built.
+let mT = 0, mI = 0;
+const MEL = [0, 2, 4, 2, 5, 4, 2, 1];
+// The ending gets its own line: a descending cascade with two echoes trailing each
+// note, falling in step with the rainbows bouncing down the screen behind it. It
+// also drops the layer gates - the finale sounds full however little was built.
+const MEG = [6, 5, 4, 3, 2, 1, 0, 3];
+const music = dt => {
+  if (!AC || G.mu || (mT -= dt) > 0) return;
+  const w = scr > 1;
+  mT = w ? .26 : .36;
+  const n = (w ? MEG : MEL)[mI++ & 7];
+  if (w) {
+    tone(SC[n] / 4, .3, 'sine', .05);
+    tone(SC[n] * 2, .22, 'sine', .03);
+    tone(SC[n] * 2, .2, 'triangle', .014, 0, .09);
+    tone(SC[n], .16, 'triangle', .01, 0, .18);
+    return;
+  }
+  const ly = upTot();
+  tone(SC[n] / 4, .34, 'sine', .05);
+  if (ly > 3) tone(SC[n] / 2, .3, 'triangle', .02, 0, .18);
+  if (ly > 9) tone(SC[(n + 2) % 7], .16, 'sine', .015, 0, .09);
+  if (ly > 16) tone(SC[(n + 4) % 7] * 2, .1, 'triangle', .009, 0, .27);
+};

@@ -1,17 +1,29 @@
 // Game state, economy and simulation. Rendering lives in 5_scene / 6_ui.
-const KEY = 'ufr4';
-const G = { m: 0, sold: 0, junk: 0, mu: 0, st: 0, u: UP.map(() => 0) };
+// js13kgames.com serves every entry from one origin, so localStorage is shared
+// between all of them. Namespace the key, touch only this key, and never call
+// localStorage.clear() - that would wipe other people's games.
+const KEY = 'unicornfactory13k';
+const G = { m: 0, sold: 0, junk: 0, mu: 0, st: 0, bst: 0, tm: 0, h: 0, u: UP.map(() => 0) };
 
 let stack = [], bad = -1, done = 0, drop = [], utx = .5;
 let spawnT = 0, shake = 0, badF = 0, urun = 0, ulean = 0;
 let runT = 0, scrapT = 0, cutT = 0, autoT = 0, aimOn = 0, shopOn = 0, rstArm = 0, ugait = 0;
 let fly = 0, flyX = 0, flyDir = 1, flyStack = [];
+// scr: 0 title, 1 playing, 2 ending. banT/banS drive the centred banner.
+let scr = 0, endT = 0, rushT = 45, rush = 0, banT = 0, banS = '';
+// The ending opens with every unicorn flying off, staggered, the player last, so
+// the cascade gets a clear sky. bye runs that exodus; endT only starts after it.
+let bye = 0;
+const exo = () => FLYT + APP.length * .12;
+const ban = s => { banS = s; banT = 2.6 };
 const APP = [];
 
 const upCost = i => UP[i][2][G.u[i]];
 const upMax = i => G.u[i] >= UP[i][2].length;
 const uv = i => { const a = UV[i]; return a ? a[upMax(i) ? G.u[i] : G.u[i] + 1] : 0 };
 const upDesc = i => UP[i][1].replace('@', uv(i));
+// How built-up the factory is: drives the music layers and the end-screen tally.
+const upTot = () => G.u.reduce((a, b) => a + b, 0);
 const upBuy = i => {
   if (upMax(i) || G.m < upCost(i)) return 0;
   G.m -= upCost(i); G.u[i]++; syncApp(); layout(); save(); return 1;
@@ -19,7 +31,7 @@ const upBuy = i => {
 
 // --- tuning curves -------------------------------------------------------
 const speed = () => min(1 + G.sold * .035, 2.4);
-const gap = () => max(.42, 1.05 / speed()) / RATE[G.u[U_RATE]];
+const gap = () => max(.42, 1.05 / speed()) / RATE[G.u[U_RATE]] / (rush > 0 ? 2 : 1);
 const fallV = () => FH / (2.9 / speed()) * OVR[G.u[U_OVR]];
 const need = () => stack.length;
 const tol = c => rsz(c) * .95 + RS * .22;
@@ -46,36 +58,38 @@ const grab = r => {
   }
 };
 
-const puff = (x, y, n) => {
-  for (let i = 0; i < n; i++) {
-    const a = rr(0, TAU);
-    PT.push({ x: x + rr(-RS, RS), y: y, r: rr(3, 9) * (FS / 15), hu: -1, ru: 0, c: hsl(275, 20, rr(55, 80), .8), l: 0, m: rr(.4, .9), vx: cos(a) * rr(30, 130), vy: sin(a) * rr(30, 130) - 60, rt: rr(0, TAU) });
-  }
-};
-
-const ringPT = (c, x, y, sc, up) => {
-  const a = rr(-2.45, -.7);
-  PT.push({ x: x, y: y, r: rsz(c) * sc, hu: c, ru: 0, c: 0, l: 0, m: rr(.85, 1.5), vx: cos(a) * rr(120, 330), vy: sin(a) * rr(230, 520) * up, rt: rr(-.4, .4) });
-};
-
 const fling = () => {
   stack.forEach((r, i) => ringPT(r.c, HX + rr(-6, 6), slotY(i), 1, 1));
   puff(HX, slotY(2), 12);
   stack = []; bad = -1; done = 0;
 };
 
+// The one place money and the sale counter move, so the rush bonus, the
+// milestone banners and the bridge all see every sale, the helpers' included.
+const gain = n => {
+  const p = n * (rush > 0 ? 2 : 1);
+  G.m += p; G.sold++;
+  if (MILE.indexOf(G.sold) >= 0) ban(G.sold + ' UNICORNS SOLD');
+  if (G.sold == BRG) {
+    scr = 2; endT = 0; banT = 0; bye = 0; mI = 0; RID = 0;
+    // Reuse the sale flyaway: give everyone a trail to ride out on.
+    APP.forEach(a => { a.fs = a.st; a.fx = a.x; a.fd = a.x > FX + FW / 2 ? -1 : 1; a.fl = 0 });
+    flyStack = stack; flyX = HX; flyDir = HX > FX + FW / 2 ? -1 : 1; fly = 0;
+  }
+  return p;
+};
+
 const payout = () => {
-  G.st++;
+  G.st++; if (G.st > G.bst) G.bst = G.st;
   const b = G.u[U_STK] ? min(flr(G.st / 3), UV[U_STK][G.u[U_STK]]) : 0;
-  G.m += PAY + b; G.sold++;
-  return b;
+  return gain(PAY + b);
 };
 
 const sell = () => {
   if (!done || busy()) return 0;
   const b = payout(); sSell();
   burst(HX, slotY(3), 26);
-  flt(HX, slotY(6) - RS * 2, '+$' + (PAY + b), '#7ce38b');
+  flt(HX, slotY(6) - RS * 2, '+$' + b, '#7ce38b');
   flyStack = stack; flyX = HX; flyDir = HX > FX + FW / 2 ? -1 : 1; fly = 1e-4;
   stack = []; bad = -1; done = 0;
   save(); return 1;
@@ -102,10 +116,10 @@ const syncApp = () => {
 };
 
 const asell = (a, i) => {
-  G.m += PAY; G.sold++;
+  const p = gain(PAY);
   const uy = aUy(i), sc = aSc(i);
   burst(a.x, uy - SOFF[3] * sc, 14);
-  flt(a.x, uy - SOFF[6] * sc - RS, '+$' + PAY, '#8fe0a8');
+  flt(a.x, uy - SOFF[6] * sc - RS, '+$' + p, '#8fe0a8');
   a.fs = a.st; a.fx = a.x; a.fd = a.x > FX + FW / 2 ? -1 : 1; a.fl = 1e-4;
   a.st = []; sApp(7); save();
 };
@@ -182,11 +196,17 @@ const apprentices = dt => {
 
 // --- per-frame simulation ------------------------------------------------
 const upGame = dt => {
+  G.tm += dt;
+  if (!G.h && stack.length) { G.h = 1; save() }
+  else if (G.h == 1 && G.sold) { G.h = 2; save() }
+  if (banT > 0) banT = max(0, banT - dt);
+  if (rush > 0) rush = max(0, rush - dt);
+  else if ((rushT -= dt) <= 0) { rushT = rr(55, 90); rush = RUSHT; ban('RAINBOW RUSH  x2'); sDone() }
   const t = clamp((IN.x - FX) / FW, 0, 1);
   const k = (K.ArrowRight || K.d || K.D ? 1 : 0) - (K.ArrowLeft || K.a || K.A ? 1 : 0);
-  if (k) utx = clamp(utx + k * dt * 1.35, 0, 1);
+  if (k) utx = clamp(utx + k * dt * SPD[G.u[U_SPD]], 0, 1);
   else if (IN.x > FX && IN.x < FX + FW && IN.y > FY && IN.y < H - BOT) utx = t;
-  const px = HX, tg = FX + MG + utx * (FW - MG * 2), mv = FW * 1.3 * dt;
+  const px = HX, tg = FX + MG + utx * (FW - MG * 2), mv = FW * SPD[G.u[U_SPD]] * dt;
   HX = clamp(HX + clamp(tg - HX, -mv, mv), FX + MG, FX + FW - MG);
   const vx = (HX - px) / dt;
   // A mouse flick lasts a handful of frames, and while it crosses the screen the
@@ -249,24 +269,23 @@ const upGame = dt => {
 };
 
 // --- debug + persistence -------------------------------------------------
-const dbgReset = () => {
-  G.m = G.sold = G.junk = G.st = 0;
-  G.u = UP.map(() => 0);
-  stack = []; APP.length = 0; drop = []; PT.length = 0; FLT.length = 0;
-  bad = -1; done = 0; fly = 0; scrapT = cutT = autoT = 0; shopOn = 0;
-  try { delete localStorage[KEY] } catch (e) { }
-  layout(); sScrap();
-};
-
+// Every scalar in G is saved by name from one list, so adding a counter means
+// adding it here and nowhere else. Upgrade levels ride along as a second slot.
+const SK = ['m', 'sold', 'junk', 'mu', 'st', 'bst', 'tm', 'h'];
 const save = () => {
-  try { localStorage[KEY] = JSON.stringify([G.m, G.sold, G.junk, G.mu, G.st, G.u]) } catch (e) { }
+  try { localStorage[KEY] = JSON.stringify([SK.map(k => G[k] | 0), G.u]) } catch (e) { }
 };
 const load = () => {
   try {
     const d = JSON.parse(localStorage[KEY]);
-    if (!d) return;
-    G.m = d[0] | 0; G.sold = d[1] | 0; G.junk = d[2] | 0; G.mu = d[3] | 0; G.st = d[4] | 0;
-    if (d[5]) for (let i = 0; i < UP.length; i++) G.u[i] = min(d[5][i] | 0, UP[i][2].length);
+    SK.forEach((k, i) => G[k] = d[0][i] | 0);
+    for (let i = 0; i < UP.length; i++) G.u[i] = min(d[1][i] | 0, UP[i][2].length);
     syncApp();
   } catch (e) { }
+};
+
+// Debug only: wiping the save and reloading is the whole reset.
+const dbgReset = () => {
+  try { delete localStorage[KEY] } catch (e) { }
+  location.reload();
 };

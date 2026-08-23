@@ -9,7 +9,7 @@ let HX = 0, UY = 0, US = 60, RS = 12, TY = 0, MG = 20;
 // Bottom action bar and top-bar buttons.
 let BBY = 0, BBW = 0, BBH = 0, SHX = 0, SHW = 0, DGX = 0, DGW = 0, RSX = 0, RSW = 0;
 // Upgrade panel.
-let SPX = 0, SPY = 0, SPW = 0, SPH = 0, SRH = 0, SHH = 0, sscr = 0, smax = 0;
+let SPX = 0, SPY = 0, SPW = 0, SPH = 0, SRH = 0, SHH = 0, SCOL = 1, SROW = 1, sscr = 0, smax = 0;
 // SOFF[i] = height of stack slot i above the hooves, at scale 1.
 const SOFF = [], BBX = [], PT = [], FLT = [];
 
@@ -49,10 +49,18 @@ const layout = () => {
   DGX = RSX - FS * .6 - DGW;
   SHX = DGX - FS * .6 - SHW;
 
-  SPW = min(W * .93, 470); SPH = min(H * .88, 620);
+  // The shop sizes itself to the window rather than always scrolling: as many
+  // columns as the width affords, then rows squeezed until every upgrade is on
+  // screen at once. smax stays 0 - and the scrollbar hidden - unless the window
+  // is too small even for the squeezed rows.
+  SHH = FS * 3.1;
+  SCOL = clamp(flr(W * .94 / (FS * 15)), 1, 3);
+  SROW = M.ceil(UP.length / SCOL);
+  SPW = min(W * .94, SCOL * FS * 22);
+  SRH = max(min(FS * 3.9, (min(H * .94, 900) - SHH - FS * .9) / SROW), FS * 2.8);
+  SPH = min(SHH + SROW * SRH + FS * .9, H * .94);
   SPX = (W - SPW) / 2; SPY = (H - SPH) / 2;
-  SHH = FS * 3.1; SRH = clamp(FS * 3.9, 56, 94);
-  smax = max(0, UP.length * SRH - (SPH - SHH - FS * .6));
+  smax = max(0, SROW * SRH - (SPH - SHH - FS * .9));
 };
 
 // Every particle is made here. hu >= 0 draws it as a ring of that colour,

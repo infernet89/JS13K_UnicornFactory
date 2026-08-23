@@ -12,8 +12,9 @@ const click = (x, y) => {
   if (shopOn) {
     if (x < SPX || x > SPX + SPW || y < SPY || y > SPY + SPH) { shopOn = 0; return }
     if (y < SPY + SHH) { if (x > SPX + SPW - FS * 2.4) shopOn = 0; return }
-    const i = flr((y - SPY - SHH + sscr) / SRH);
-    if (i >= 0 && i < UP.length) { if (upBuy(i)) sBuy(); else sBad() }
+    const r = flr((y - SPY - SHH + sscr) / SRH);
+    const i = r * SCOL + clamp(flr((x - SPX) / (SPW / SCOL)), 0, SCOL - 1);
+    if (r >= 0 && i < UP.length) { if (upBuy(i)) sBuy(); else sBad() }
     return;
   }
   if (y < TOP) {

@@ -101,23 +101,27 @@ const drawShop = () => {
   X.fillStyle = '#0b0618cc'; X.fillRect(0, 0, W, H);
   plate(SPX, SPY, SPW, SPH, 14, '#1d1234', '#4b3577', 2);
 
-  const top = SPY + SHH, vh = SPH - SHH - FS * .6, pad = FS * .55;
+  const top = SPY + SHH, vh = SPH - SHH - FS * .9, pad = FS * .5, cw = SPW / SCOL;
   sscr = clamp(sscr, 0, smax);
   X.save(); X.beginPath(); X.rect(SPX, top, SPW, vh); X.clip();
   for (let i = 0; i < UP.length; i++) {
-    const y = top + i * SRH - sscr;
+    const y = top + flr(i / SCOL) * SRH - sscr, x = SPX + (i % SCOL) * cw;
     if (y > top + vh || y + SRH < top) continue;
     const mx = upMax(i), c = upCost(i), ok = !mx && G.m >= c;
-    plate(SPX + pad, y + pad * .4, SPW - pad * 2, SRH - pad * .8, 8,
+    plate(x + pad * .55, y + pad * .35, cw - pad * 1.1, SRH - pad * .7, 8,
       mx ? '#231a3a' : ok ? '#2c1c4e' : '#1e1533', ok && '#7ce38b88');
-    const tx = SPX + pad * 2, cy = y + SRH / 2, rx = SPX + SPW - pad * 2;
-    txt(UP[i][0], tx, cy - FS * .72, FS * .96, mx ? '#9d8bc6' : '#fff', 'left', 'bold');
-    txt(upDesc(i), tx, cy + FS * .35, FS * .68, '#a794cf', 'left');
-    txt(mx ? 'MAX' : '$' + c, rx, cy - FS * .68, FS * 1.02, mx || ok ? '#7ce38b' : '#6d5c93', 'right', 'bold');
-    const pw = FS * .5;
-    for (let k = 0; k < UP[i][2].length; k++) {
+    const tx = x + pad * 1.6, cy = y + SRH / 2, rx = x + cw - pad * 1.6;
+    // Levels are pips on the second line, hard right; the name and the
+    // description are handed whatever width is left over as fillText's maxWidth,
+    // so a narrow column condenses its text instead of spilling into the
+    // neighbouring card.
+    const n = UP[i][2].length, pw = FS * .62;
+    txt(UP[i][0], tx, cy - FS * .68, FS * .94, mx ? '#9d8bc6' : '#fff', 'left', 'bold', rx - tx - FS * 3.4);
+    txt(mx ? 'MAX' : '$' + c, rx, cy - FS * .68, FS * 1, mx || ok ? '#7ce38b' : '#6d5c93', 'right', 'bold');
+    txt(upDesc(i), tx, cy + FS * .62, FS * .66, '#a794cf', 'left', 0, max(FS, rx - tx - n * pw));
+    for (let k = 0; k < n; k++) {
       X.fillStyle = k < G.u[i] ? '#ffcf5c' : '#4a3a70';
-      dot(rx - k * pw * 1.5, cy + FS * .5, pw * .34);
+      dot(rx - (n - 1 - k) * pw, cy + FS * .62, pw * .3);
     }
   }
   X.restore();
@@ -131,8 +135,8 @@ const drawShop = () => {
   X.moveTo(cx + q, cy - q); X.lineTo(cx - q, cy + q); X.stroke();
   if (smax > 0) {
     X.fillStyle = '#5a4488';
-    const bh = (SPH - SHH) * (SPH - SHH) / (UP.length * SRH);
-    X.fillRect(SPX + SPW - 5, top + (sscr / smax) * (SPH - SHH - bh - FS), 3, bh);
+    const bh = vh * vh / (SROW * SRH);
+    X.fillRect(SPX + SPW - 5, top + (sscr / smax) * (vh - bh), 3, bh);
   }
 };
 
@@ -140,11 +144,26 @@ const drawShop = () => {
 // Shared attract pulse for every 'do this next' line on screen.
 const blink = () => 'hsl(50 100% 76%/' + (.45 + .55 * abs(sin(TIME * 3))) + ')';
 // Each hint waits for the action it teaches and never comes back: G.h is saved.
-const HINT = ['catch the RED ring on your horn', 'press SPACE to sell it', 'press B to spend your money'];
+// Two of the three name a control, which is a key on a desktop and a button on a
+// phone, so they are built from TCH rather than stored.
 const hint = () => {
   if (G.h > 2 || shopOn) return;
-  const s = G.h ? G.h > 1 ? canBuy() && HINT[2] : done && HINT[1] : HINT[0];
-  if (s) txt(s, FX + (W - FX) / 2, BBY - FS * 1.15, FS * .88, blink(), 'center', 'bold');
+  const s = G.h
+    ? G.h > 1
+      ? canBuy() && (TCH ? 'tap SHOP' : 'press B') + ' to spend your money'
+      : bad >= 0 && (TCH ? 'tap SCRAP' : 'press X') + ' to start over'
+    : 'catch the RED ring on your horn';
+  if (!s) return;
+  // The line sits just above the button bar, which is exactly where the pale cloud
+  // bank and the unicorn are, and pale yellow on pale lilac was unreadable. Set the
+  // font first so measureText matches what txt is about to draw, then lay a dark
+  // pill under it - guessing a width from the character count would not survive
+  // switching between the key and the button wording.
+  const sz = FS * .88, hx = FX + (W - FX) / 2, hy = BBY - FS * 1.45;
+  X.font = 'bold ' + sz + 'px system-ui,Segoe UI,sans-serif';
+  const hw = X.measureText(s).width + sz * 1.5, hh = sz * 1.9;
+  plate(hx - hw / 2, hy - hh / 2, hw, hh, hh / 2, '#0b0618d4', '#ffffff20');
+  txt(s, hx, hy, sz, blink(), 'center', 'bold');
 };
 
 const panel = (w, h) => {
@@ -162,12 +181,63 @@ const playBtn = () => {
   return [(W - bw) / 2, H * .79, bw, FS * 3.4];
 };
 
+// Both title words are drawn, not stored: seven letters each, so each word runs
+// straight through the seven rainbow hues, one per letter. Every letter is four
+// nested outlines with a bloom behind it - neon tubing, which is the look of the
+// artwork the title was designed from.
+//
+// The nesting comes from stroking the glyph at shrinking widths and punching every
+// other pass straight back out. That needs a canvas of its own: 'destination-out' on
+// the real one would take the sky with it. The glows go on last with
+// 'destination-over' so they slide underneath instead of being punched too.
+// rev runs the rainbow the other way, so the two words mirror each other instead of
+// repeating the same left-to-right ramp twice.
+const neon = (q, s, cx, cy, sz, rev) => {
+  const hu = i => rev ? NR - 1 - i : i;
+  q.font = 'bold ' + sz + 'px system-ui,Segoe UI,sans-serif';
+  q.textAlign = 'center'; q.textBaseline = 'middle'; q.lineJoin = 'round';
+  const gp = sz * .07, ws = [];
+  let tw = -gp;
+  for (const c of s) { const m = q.measureText(c).width; ws.push(m); tw += m + gp }
+  const px = i => { let x = cx - tw / 2; for (let k = 0; k < i; k++) x += ws[k] + gp; return x + ws[i] / 2 };
+  s.split('').forEach((c, i) => {
+    q.strokeStyle = RC(hu(i), 24);
+    for (let k = 4; k--;) {
+      const lw = sz * (.028 + k * .05);
+      q.globalCompositeOperation = 'source-over'; q.lineWidth = lw; q.strokeText(c, px(i), cy);
+      q.globalCompositeOperation = 'destination-out'; q.lineWidth = lw - sz * .015; q.strokeText(c, px(i), cy);
+    }
+  });
+  q.globalCompositeOperation = 'destination-over';
+  q.shadowBlur = sz * .5;
+  s.split('').forEach((c, i) => { q.shadowColor = RC(hu(i), 14); q.fillStyle = RC(hu(i), 4, .3); q.fillText(c, px(i), cy) });
+  q.shadowBlur = 0; q.globalCompositeOperation = 'source-over';
+};
+// Rebuilt only when the size changes; the title screen redraws every frame for the
+// pulsing PLAY button and the walking unicorn.
+let TT = 0, TTS = 0, TTW = 0;
+
 const drawTitle = () => {
   X.fillStyle = '#0b0618c8'; X.fillRect(0, 0, W, H);
-  const ts = min(W * .165, H * .125);
-  txt('UNICORN', W / 2, H * .15, ts, '#ff9fd6', 'center', 'bold');
-  txt('FACTORY', W / 2, H * .27, ts, '#7ce38b', 'center', 'bold');
-  txt('stack the rings, build the rainbow', W / 2, H * .36, FS * .9, '#a794cf', 'center');
+  const ts = min(W * .143, H * .108);
+  if (TTS != ts || TTW != W) {
+    TTS = ts; TTW = W;
+    TT = document.createElement('canvas');
+    TT.width = W; TT.height = ts * 3.1;
+    const q = TT.getContext('2d');
+    neon(q, 'UNICORN', W / 2, ts * .9, ts);
+    neon(q, 'FACTORY', W / 2, ts * 2.15, ts, 1);
+  }
+  // Blurred additive pass first, crisp tubing on top: that is what makes it read as
+  // lit rather than merely outlined.
+  const y0 = H * .13 - ts * .9;
+  X.save();
+  X.globalCompositeOperation = 'lighter'; X.filter = 'blur(' + ts * .1 + 'px)';
+  X.drawImage(TT, 0, y0);
+  X.restore();
+  X.drawImage(TT, 0, y0);
+
+  txt('stack the rings, build the rainbow', W / 2, y0 + ts * 2.85, FS * .9, '#a794cf', 'center');
 
   uni(W / 2, H * .73, min(W * .3, H * .195), TIME, 0, 1, sin(TIME * 2.2) * .6, TIME * 9);
 
@@ -195,6 +265,6 @@ const drawEnd = () => {
     txt(r[0], x + p, ry, FS * .84, '#a794cf', 'left');
     txt('' + r[1], x + w - p, ry, FS * .96, '#fff', 'right', 'bold');
   });
-  txt('click to keep playing', W / 2, y + h * .93, FS * .88, blink(), 'center', 'bold');
+  txt((TCH ? 'tap' : 'click') + ' to keep playing', W / 2, y + h * .93, FS * .88, blink(), 'center', 'bold');
   X.globalAlpha = 1;
 };

@@ -229,7 +229,10 @@ const upGame = dt => {
   }
   if (scrapT > 0) scrapT = max(0, scrapT - dt);
   if (cutT > 0) cutT = max(0, cutT - dt);
-  if (G.u[U_AUT] && done && !fly) { autoT += dt; if (autoT > .4) { autoT = 0; sell() } } else autoT = 0;
+  // A finished rainbow sells itself after a beat. This used to be an upgrade;
+  // making the player press SPACE on a stack that is unambiguously done was
+  // busywork, and charging for the fix was worse.
+  if (done && !fly) { autoT += dt; if (autoT > .4) { autoT = 0; sell() } } else autoT = 0;
 
   spawnT -= dt;
   if (spawnT <= 0) { spawnT = gap() * rr(.85, 1.2); spawn() }
@@ -247,7 +250,7 @@ const upGame = dt => {
       const dx = r.x - HX;
       if (r.c == need()) {
         if (G.u[U_MAG] && abs(dx) < mr) r.x -= clamp(dx, -mp, mp);
-        if (G.u[U_AIM] && abs(dx) < tol(r.c)) aimOn = 1;
+        if (abs(dx) < tol(r.c)) aimOn = 1;
       } else if (wh && TY - r.y < wh) {
         const gtl = tol(r.c) * 1.3;
         if (abs(dx) < gtl) {

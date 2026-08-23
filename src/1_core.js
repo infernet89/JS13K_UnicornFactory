@@ -16,10 +16,14 @@ let W = 0, H = 0, DPR = 1, TIME = 0;
 // Pointer: x/y track the cursor, dy/w accumulate scroll deltas consumed once per frame,
 // tap fires on a press-release that never turned into a drag.
 const IN = { x: -9, y: -9, dn: 0, tap: 0, tx: 0, ty: 0, drag: 0, dy: 0, w: 0 };
+// Which control scheme the player is actually using, so a hint can name a key or
+// a button. Set by the pointer type and cleared by any keypress: a media query
+// would call a touchscreen laptop a phone for as long as its owner keeps typing.
+let TCH = 0;
 let _sy = 0;
 const _p = e => { IN.x = e.clientX; IN.y = e.clientY };
 C.addEventListener('pointerdown', e => {
-  au(); _p(e); IN.dn = 1; IN.drag = 0; _sy = e.clientY; IN.dy = 0;
+  au(); _p(e); IN.dn = 1; IN.drag = 0; _sy = e.clientY; IN.dy = 0; TCH = e.pointerType == 'mouse' ? 0 : 1;
   try { C.setPointerCapture(e.pointerId) } catch (z) { }
 });
 C.addEventListener('pointermove', e => {
@@ -33,7 +37,7 @@ addEventListener('wheel', e => { IN.w += e.deltaY; e.preventDefault() }, { passi
 addEventListener('contextmenu', e => e.preventDefault());
 
 const K = {};
-addEventListener('keydown', e => { au(); K[e.key] = 1; if (e.key == ' ' || e.key.slice(0, 5) == 'Arrow') e.preventDefault() });
+addEventListener('keydown', e => { au(); TCH = 0; K[e.key] = 1; if (e.key == ' ' || e.key.slice(0, 5) == 'Arrow') e.preventDefault() });
 addEventListener('keyup', e => K[e.key] = 0);
 addEventListener('blur', () => { for (const k in K) K[k] = 0 });
 
@@ -45,10 +49,12 @@ const plate = (x, y, w, h, r, fill, line, lw) => {
   X.fillStyle = fill; box(x, y, w, h, r); X.fill();
   if (line) { X.strokeStyle = line; X.lineWidth = lw || 1; X.stroke() }
 };
-const txt = (s, x, y, sz, col, al, w) => {
+// mw is fillText's own maxWidth: the canvas condenses the glyphs to fit instead
+// of spilling. Only the shop passes it, where a column can be narrow.
+const txt = (s, x, y, sz, col, al, w, mw) => {
   X.font = (w ? w + ' ' : '') + sz + 'px system-ui,Segoe UI,sans-serif';
   X.fillStyle = col; X.textAlign = al || 'left'; X.textBaseline = 'middle';
-  X.fillText(s, x, y);
+  X.fillText(s, x, y, mw);
 };
 const grad = (x0, y0, x1, y1, a, b) => {
   const g = X.createLinearGradient(x0, y0, x1, y1);

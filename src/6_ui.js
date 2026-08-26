@@ -1,4 +1,5 @@
-// Chrome drawn on top of the field: order sidebar, top bar, action buttons, upgrade panel.
+// Chrome drawn on top of the field: order sidebar, top bar, action buttons and
+// upgrade panel, then the three full-screen overlays - hint, title and ending.
 
 const drawRef = () => {
   X.fillStyle = '#1a1030'; X.fillRect(0, 0, RFW, H - BOT);
@@ -10,19 +11,15 @@ const drawRef = () => {
     ring(cx, y, r0 * taper(i), i, 0);
     X.globalAlpha = 1;
     if (nx) {
-      X.strokeStyle = 'hsl(50 100% 75%/' + (.4 + .45 * abs(sin(TIME * 3))) + ')';
-      X.lineWidth = max(1.5, r0 * .12);
-      X.beginPath(); X.ellipse(cx, y, r0 * 1.34, r0 * .64, 0, 0, TAU); X.stroke();
+      // The same attract pulse as the on-screen hints: this halo is a 'do this next'.
+      strk(blink(), max(1.5, r0 * .12));
+      X.ellipse(cx, y, r0 * 1.34, r0 * .64, 0, 0, TAU); X.stroke();
     }
     if (has) {
-      X.strokeStyle = bad == i ? '#ff4d6d' : '#7ce38b'; X.lineWidth = max(1.6, r0 * .14);
-      X.lineCap = 'round'; X.beginPath();
-      if (bad == i) {
-        X.moveTo(cx - r0 * .3, y - r0 * .3); X.lineTo(cx + r0 * .3, y + r0 * .3);
-        X.moveTo(cx + r0 * .3, y - r0 * .3); X.lineTo(cx - r0 * .3, y + r0 * .3);
-      } else {
-        X.moveTo(cx - r0 * .32, y); X.lineTo(cx - r0 * .08, y + r0 * .26); X.lineTo(cx + r0 * .34, y - r0 * .28);
-      }
+      X.lineCap = 'round';
+      strk(bad == i ? '#ff4d6d' : '#7ce38b', max(1.6, r0 * .14));
+      if (bad == i) cross(cx, y, r0 * .3, r0 * .3);
+      else { X.moveTo(cx - r0 * .32, y); X.lineTo(cx - r0 * .08, y + r0 * .26); X.lineTo(cx + r0 * .34, y - r0 * .28) }
       X.stroke();
     }
   }
@@ -36,10 +33,9 @@ const spk = (x, y, r, on) => {
   X.moveTo(x - r, y - r * .4); X.lineTo(x - r * .35, y - r * .4); X.lineTo(x + r * .3, y - r);
   X.lineTo(x + r * .3, y + r); X.lineTo(x - r * .35, y + r * .4); X.lineTo(x - r, y + r * .4);
   X.closePath(); X.fill();
-  X.strokeStyle = c; X.lineWidth = max(1, r * .2);
-  X.beginPath();
+  strk(c, max(1, r * .2));
   if (on) X.arc(x + r * .45, y, r * .5, -.9, .9);
-  else { X.moveTo(x + r * .6, y - r * .5); X.lineTo(x + r * 1.2, y + r * .5); X.moveTo(x + r * 1.2, y - r * .5); X.lineTo(x + r * .6, y + r * .5) }
+  else cross(x + r * .9, y, r * .3, r * .5);
   X.stroke();
 };
 
@@ -53,7 +49,7 @@ const tab = (x, w, lab, fs, fill, line, col, dash) => {
 
 const btn = (x, lab, sub, on, hot, c1, c2) => {
   plate(x, BBY, BBW, BBH, 9,
-    on ? (hot ? 'hsl(348 82% ' + (52 + 9 * sin(TIME * 8)) + '%)' : grad(x, BBY, x + BBW, BBY + BBH, c1, c2)) : '#241a3c',
+    on ? (hot ? hsl(348, 82, 52 + 9 * sin(TIME * 8)) : grad(x, BBY, x + BBW, BBY + BBH, c1, c2)) : '#241a3c',
     on && '#ffffff40');
   txt(lab, x + BBW / 2, BBY + BBH * .37, FS * (BBW < FS * 9 ? .9 : 1.05), on ? '#fff' : '#5c4a82', 'center', 'bold');
   txt(sub, x + BBW / 2, BBY + BBH * .73, FS * .62, on ? '#ffffffc4' : '#493a6b', 'center');
@@ -76,7 +72,7 @@ const drawUI = () => {
     hx, TOP / 2 + FS * .12, FS * .76, '#9b86c9', 'left');
 
   const cb = canBuy();
-  tab(SHX, SHW, 'SHOP', .82, cb ? 'hsl(268 62% ' + (52 + 7 * sin(TIME * 5)) + '%)' : '#2b1c48', cb ? '#d8bcff' : '#5a4488', cb ? '#fff' : '#a08ecb');
+  tab(SHX, SHW, 'SHOP', .82, cb ? hsl(268, 62, 52 + 7 * sin(TIME * 5)) : '#2b1c48', cb ? '#d8bcff' : '#5a4488', cb ? '#fff' : '#a08ecb');
   tab(DGX, DGW, '+$' + DBG, .68, '#3a2a14', '#c8912f', '#e8b64d', 1);
   tab(RSX, RSW, rstArm > 0 ? 'SURE?' : 'RST', .64, rstArm > 0 ? '#8e1b33' : '#3a1620', '#d4577a', rstArm > 0 ? '#fff' : '#e0788f', 1);
 
@@ -88,9 +84,9 @@ const drawUI = () => {
   btn(BBX[n - 2], 'SCRAP', stack.length ? 'start over' : 'nothing to scrap', stack.length > 0, bad >= 0 && n < 3, '#8a5fd6', '#5b3fa8');
   btn(BBX[n - 1], 'SELL  $' + PAY, done ? 'rainbow complete!' : 'finish the rainbow', done, 0, '#39c47c', '#1f9e8e');
 
-  if (rush > 0) { X.fillStyle = 'hsl(' + (TIME * 260 % 360) + ' 100% 62%/.06)'; X.fillRect(FX, TOP, W - FX, FH) }
+  if (rush > 0) { X.fillStyle = hsl(TIME * 260 % 360, 100, 62, .06); X.fillRect(FX, TOP, W - FX, FH) }
   if (banT > 0) txt(banS, FX + (W - FX) / 2, TOP + FH * .2, FS * 1.6,
-    'hsl(' + (TIME * 220 % 360) + ' 92% 74%/' + min(banT / .45, 1) + ')', 'center', 'bold');
+    hsl(TIME * 220 % 360, 92, 74, min(banT / .45, 1)), 'center', 'bold');
   hint();
 
   FLT.forEach(f => { X.globalAlpha = 1 - f.l / 1.2; txt(f.s, f.x, f.y, FS * 1.3, f.c, 'center', 'bold') });
@@ -129,10 +125,10 @@ const drawShop = () => {
   plate(SPX, SPY, SPW, SHH, 14, '#1d1234');
   txt('UPGRADES', SPX + FS, SPY + SHH / 2, FS * 1.12, '#ff9fd6', 'left', 'bold');
   txt('$' + G.m, SPX + SPW - FS * 3, SPY + SHH / 2, FS * 1.12, '#7ce38b', 'right', 'bold');
-  X.strokeStyle = '#b79ee0'; X.lineWidth = max(2, FS * .16); X.lineCap = 'round';
-  const cx = SPX + SPW - FS * 1.4, cy = SPY + SHH / 2, q = FS * .42;
-  X.beginPath(); X.moveTo(cx - q, cy - q); X.lineTo(cx + q, cy + q);
-  X.moveTo(cx + q, cy - q); X.lineTo(cx - q, cy + q); X.stroke();
+  X.lineCap = 'round';
+  strk('#b79ee0', max(2, FS * .16));
+  const q = FS * .42;
+  cross(SPX + SPW - FS * 1.4, SPY + SHH / 2, q, q); X.stroke();
   if (smax > 0) {
     X.fillStyle = '#5a4488';
     const bh = vh * vh / (SROW * SRH);
@@ -142,7 +138,8 @@ const drawShop = () => {
 
 // --- overlays: hints, title, ending ---------------------------------------
 // Shared attract pulse for every 'do this next' line on screen.
-const blink = () => 'hsl(50 100% 76%/' + (.45 + .55 * abs(sin(TIME * 3))) + ')';
+const pul = () => abs(sin(TIME * 3));
+const blink = () => hsl(50, 100, 76, .45 + .55 * pul());
 // Each hint waits for the action it teaches and never comes back: G.h is saved.
 // Two of the three name a control, which is a key on a desktop and a button on a
 // phone, so they are built from TCH rather than stored.
@@ -160,15 +157,10 @@ const hint = () => {
   // pill under it - guessing a width from the character count would not survive
   // switching between the key and the button wording.
   const sz = FS * .88, hx = FX + (W - FX) / 2, hy = BBY - FS * 1.45;
-  X.font = 'bold ' + sz + 'px system-ui,Segoe UI,sans-serif';
+  fnt(X, sz, 'bold');
   const hw = X.measureText(s).width + sz * 1.5, hh = sz * 1.9;
   plate(hx - hw / 2, hy - hh / 2, hw, hh, hh / 2, '#0b0618d4', '#ffffff20');
   txt(s, hx, hy, sz, blink(), 'center', 'bold');
-};
-
-const panel = (w, h) => {
-  X.fillStyle = '#0b0618d8'; X.fillRect(0, 0, W, H);
-  plate((W - w) / 2, (H - h) / 2, w, h, 16, '#1d1234', '#7a58b8', 2);
 };
 
 // Full-screen title: name up top, unicorn in the middle, PLAY at the bottom and
@@ -194,13 +186,14 @@ const playBtn = () => {
 // repeating the same left-to-right ramp twice.
 const neon = (q, s, cx, cy, sz, rev) => {
   const hu = i => rev ? NR - 1 - i : i;
-  q.font = 'bold ' + sz + 'px system-ui,Segoe UI,sans-serif';
+  fnt(q, sz, 'bold');
   q.textAlign = 'center'; q.textBaseline = 'middle'; q.lineJoin = 'round';
-  const gp = sz * .07, ws = [];
-  let tw = -gp;
-  for (const c of s) { const m = q.measureText(c).width; ws.push(m); tw += m + gp }
+  // Letters are placed one at a time, so the word has to be measured by hand:
+  // each glyph's own width plus a fixed gap, centred on the whole run.
+  const L = [...s], gp = sz * .07, ws = L.map(c => q.measureText(c).width);
+  const tw = ws.reduce((a, w) => a + w + gp, -gp);
   const px = i => { let x = cx - tw / 2; for (let k = 0; k < i; k++) x += ws[k] + gp; return x + ws[i] / 2 };
-  s.split('').forEach((c, i) => {
+  L.forEach((c, i) => {
     q.strokeStyle = RC(hu(i), 24);
     for (let k = 4; k--;) {
       const lw = sz * (.028 + k * .05);
@@ -210,7 +203,7 @@ const neon = (q, s, cx, cy, sz, rev) => {
   });
   q.globalCompositeOperation = 'destination-over';
   q.shadowBlur = sz * .5;
-  s.split('').forEach((c, i) => { q.shadowColor = RC(hu(i), 14); q.fillStyle = RC(hu(i), 4, .3); q.fillText(c, px(i), cy) });
+  L.forEach((c, i) => { q.shadowColor = RC(hu(i), 14); q.fillStyle = RC(hu(i), 4, .3); q.fillText(c, px(i), cy) });
   q.shadowBlur = 0; q.globalCompositeOperation = 'source-over';
 };
 // Rebuilt only when the size changes; the title screen redraws every frame for the
@@ -244,7 +237,7 @@ const drawTitle = () => {
   const [bx, by, bw, bh] = playBtn();
   const hot = IN.x > bx && IN.x < bx + bw && IN.y > by && IN.y < by + bh;
   plate(bx, by, bw, bh, 10, hot ? '#4bd68f' : grad(bx, by, bx + bw, by + bh, '#39c47c', '#1f9e8e'),
-    'hsl(0 0% 100%/' + (.25 + .3 * abs(sin(TIME * 3))) + ')', 2);
+    hsl(0, 0, 100, .25 + .3 * pul()), 2);
   txt('PLAY', W / 2, by + bh / 2, FS * 1.5, '#fff', 'center', 'bold');
 
   txt('Made for JS13KGames', FS, H - FS * 1.1, FS * .78, '#7c6aa8', 'left');
@@ -256,7 +249,8 @@ const drawEnd = () => {
   if (a <= 0) return;
   X.globalAlpha = a;
   const w = min(W * .88, 410), h = min(H * .82, 350), x = (W - w) / 2, y = (H - h) / 2, p = FS * 1.5;
-  panel(w, h);
+  X.fillStyle = '#0b0618d8'; X.fillRect(0, 0, W, H);
+  plate(x, y, w, h, 16, '#1d1234', '#7a58b8', 2);
   txt('THE BRIDGE IS DONE', W / 2, y + h * .13, FS * 1.2, '#ff9fd6', 'center', 'bold');
   [['unicorns sold', G.sold], ['scrapped', G.junk], ['best streak', G.bst],
    ['upgrades', upTot()],

@@ -57,7 +57,7 @@ from deleting data and logic outright.
 | `3_game.js` | state, economy, simulation, apprentice AI, save/load |
 | `4_art.js` | procedural art: unicorn, ring, cloud, star |
 | `5_scene.js` | responsive layout and everything inside the play field |
-| `6_ui.js` | order sidebar, top bar, action buttons, upgrade panel |
+| `6_ui.js` | order sidebar, top bar, action buttons, upgrade panel, overlays |
 | `7_audio.js` | WebAudio synth |
 | `8_main.js` | resize, click/key routing, screen routing, game loop, frame composition |
 
@@ -281,13 +281,33 @@ Places where one definition serves many callers — change them here, not at the
 | helper | file | covers |
 |---|---|---|
 | `plate` | `1_core.js` | every filled rounded rect with an outline: pills, buttons, panels |
-| `txt` | `1_core.js` | all canvas text; the last argument is `fillText`'s `maxWidth`, used by the shop |
+| `strk` | `1_core.js` | colour + width + `beginPath` for every stroked shape; the caller strokes |
+| `seg` / `cross` | `1_core.js` | a line, and an X on its own ellipse: mistake marker, shop close, muted speaker |
+| `fnt` / `txt` | `1_core.js` | all canvas text; `fnt` takes the context, since the title builds on one of its own. `txt`'s last argument is `fillText`'s `maxWidth`, used by the shop |
+| `hsl` | `1_core.js` | every computed colour. Nothing builds an `hsl(...)` string by hand any more |
+| `tapped` | `1_core.js` | consume the pending tap; whoever reads it first gets it |
 | `pt` | `5_scene.js` | the only particle constructor; `burst`/`puff`/`ringPT` all go through it |
 | `rotAt` | `5_scene.js` | rotate the canvas about a point (caller restores) |
 | `drawUnit` | `5_scene.js` | one unicorn plus its ring tower — the player and every apprentice |
+| `launch` / `aLaunch` | `3_game.js` | arm the flyaway; the only place the four `fly*` fields are written |
+| `away` | `3_game.js` | which edge a unicorn leaves by — whichever one it is already nearest |
+| `blink` / `pul` | `6_ui.js` | the attract pulse behind every 'do this next' cue, sidebar halo included |
 | `KB` | `8_main.js` | edge-triggered keyboard shortcuts; a new one is a single row |
 | `SK` | `3_game.js` | the list of saved scalars; a new counter is added here only |
 | `upTot` | `3_game.js` | how built-up the factory is (music layers, end-screen tally) |
+
+`drawUnit` takes sixteen positional arguments and that is deliberate: the player keeps
+its state in globals and an apprentice keeps the same state in an object, so loose values
+are the only thing both can hand over. The last four are exactly the fields `aLaunch`
+writes.
+
+`frame()` in `8_main.js` steps one of the three screens and then draws once at the
+bottom. The world, the sidebar and the top bar are common to playing and the ending, so
+they are written once rather than in every branch; only the overlay on top differs.
+
+`layout()` runs twice at boot on purpose. `resize()` has to give `load()` a field to
+place the saved apprentices in, and `load()` can restore the Horn Saw, which adds a third
+button to the bar — so the bar has to be measured again afterwards.
 
 ## Controls
 

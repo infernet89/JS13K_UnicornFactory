@@ -31,6 +31,9 @@ C.addEventListener('pointermove', e => {
   _p(e);
 });
 const _up = () => { if (IN.dn && !IN.drag) { IN.tap = 1; IN.tx = IN.x; IN.ty = IN.y } IN.dn = 0 };
+// A tap is consumed by whoever reads it first, so the title, the shop and the
+// board never all act on the same one.
+const tapped = () => IN.tap ? (IN.tap = 0, 1) : 0;
 C.addEventListener('pointerup', _up);
 C.addEventListener('pointercancel', _up);
 addEventListener('wheel', e => { IN.w += e.deltaY; e.preventDefault() }, { passive: false });
@@ -41,6 +44,7 @@ addEventListener('keydown', e => { au(); TCH = 0; K[e.key] = 1; if (e.key == ' '
 addEventListener('keyup', e => K[e.key] = 0);
 addEventListener('blur', () => { for (const k in K) K[k] = 0 });
 
+// --- filled shapes -------------------------------------------------------
 const dot = (x, y, r) => { X.beginPath(); X.arc(x, y, r, 0, TAU); X.fill() };
 const tri = (a, b, c, d, e, f) => { X.beginPath(); X.moveTo(a, b); X.lineTo(c, d); X.lineTo(e, f); X.closePath(); X.fill() };
 const box = (x, y, w, h, r) => { X.beginPath(); X.roundRect(x, y, w, h, r) };
@@ -49,10 +53,28 @@ const plate = (x, y, w, h, r, fill, line, lw) => {
   X.fillStyle = fill; box(x, y, w, h, r); X.fill();
   if (line) { X.strokeStyle = line; X.lineWidth = lw || 1; X.stroke() }
 };
+
+// --- stroked shapes ------------------------------------------------------
+// Open a stroked path. Every outline in the game picks a colour and a width and
+// then starts drawing, so the three go together; the caller still strokes, since
+// a few build several subpaths first.
+const strk = (col, w) => { X.strokeStyle = col; X.lineWidth = w; X.beginPath() };
+const seg = (x0, y0, x1, y1) => { X.beginPath(); X.moveTo(x0, y0); X.lineTo(x1, y1) };
+// An X, on its own ellipse so it can be squashed: the mistake marker in the order
+// list, the shop's close button and the bar across a muted speaker.
+const cross = (x, y, rx, ry) => {
+  seg(x - rx, y - ry, x + rx, y + ry);
+  X.moveTo(x + rx, y - ry); X.lineTo(x - rx, y + ry);
+};
+
+// --- text ----------------------------------------------------------------
+// fnt takes the context because the title lettering is built on one of its own.
+const FF = 'px system-ui,Segoe UI,sans-serif';
+const fnt = (q, sz, w) => q.font = (w ? w + ' ' : '') + sz + FF;
 // mw is fillText's own maxWidth: the canvas condenses the glyphs to fit instead
 // of spilling. Only the shop passes it, where a column can be narrow.
 const txt = (s, x, y, sz, col, al, w, mw) => {
-  X.font = (w ? w + ' ' : '') + sz + 'px system-ui,Segoe UI,sans-serif';
+  fnt(X, sz, w);
   X.fillStyle = col; X.textAlign = al || 'left'; X.textBaseline = 'middle';
   X.fillText(s, x, y, mw);
 };
@@ -60,4 +82,4 @@ const grad = (x0, y0, x1, y1, a, b) => {
   const g = X.createLinearGradient(x0, y0, x1, y1);
   g.addColorStop(0, a); g.addColorStop(1, b); return g;
 };
-const hsl = (h, s, l, a) => 'hsl(' + h + ' ' + s + '% ' + l + '%/' + (a === undefined ? 1 : a) + ')';
+const hsl = (h, s, l, a = 1) => 'hsl(' + h + ' ' + s + '% ' + l + '%/' + a + ')';

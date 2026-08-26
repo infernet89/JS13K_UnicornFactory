@@ -32,11 +32,10 @@ const ring = (x, y, rx, ci, ruin, tilt) => {
   g.addColorStop(0, hsl(hu, s, l + 16)); g.addColorStop(.45, hsl(hu, s, l));
   g.addColorStop(1, hsl(hu, s, l - 22));
   X.fillStyle = g; X.fill('evenodd');
-  X.lineWidth = max(1, rx * .07);
-  X.strokeStyle = ruin ? '#ff4d6d' : hsl(hu, 70, 20, .55);
-  X.beginPath(); X.ellipse(0, 0, rx, ry, 0, 0, TAU); X.stroke();
-  X.strokeStyle = hsl(hu, 100, ruin ? 60 : 86, .75); X.lineWidth = max(1, t * .3);
-  X.beginPath(); X.ellipse(0, -ry * .3, rx - t * .5, ry * .5, 0, PI * 1.12, PI * 1.88); X.stroke();
+  strk(ruin ? '#ff4d6d' : hsl(hu, 70, 20, .55), max(1, rx * .07));
+  X.ellipse(0, 0, rx, ry, 0, 0, TAU); X.stroke();
+  strk(hsl(hu, 100, ruin ? 60 : 86, .75), max(1, t * .3));
+  X.ellipse(0, -ry * .3, rx - t * .5, ry * .5, 0, PI * 1.12, PI * 1.88); X.stroke();
   txt(ci + 1, 0, 0, rx * .62, hsl(hu, 94, 92, .82), 'center', 'bold');
   X.restore();
 };
@@ -65,9 +64,10 @@ const uni = (x, y, s, t, glow, run, ln, gt) => {
   X.beginPath(); X.moveTo(-.21, -.62);
   X.bezierCurveTo(-.42 + tl, -.62, -.44 + tl, -.3, -.3 + tl, -.16);
   X.lineTo(-.17, -.34); X.closePath(); X.fill();
+  X.lineCap = 'round';
   for (let i = 0; i < 6; i++) {
-    X.strokeStyle = RC(i, 4); X.lineWidth = .046; X.lineCap = 'round';
-    X.beginPath(); X.moveTo(-.2, -.6 + i * .012);
+    strk(RC(i, 4), .046);
+    X.moveTo(-.2, -.6 + i * .012);
     X.bezierCurveTo(-.37 - i * .012 + tl, -.6 + sin(t * 2) * .02, -.39 + tl, -.32, -.28 - i * .011 + tl, -.17 - i * .022);
     X.stroke();
   }
@@ -86,8 +86,8 @@ const uni = (x, y, s, t, glow, run, ln, gt) => {
   X.lineCap = 'round';
   for (let i = 0; i < 7; i++) {
     const f = (i / 6 - .5) * 2, wv = sin(t * 2.2 + i * .7) * .014 - lean * .11;
-    X.strokeStyle = RC(i, 2); X.lineWidth = .055;
-    X.beginPath(); X.moveTo(f * .085, -.9);
+    strk(RC(i, 2), .055);
+    X.moveTo(f * .085, -.9);
     X.quadraticCurveTo(f * .26 + wv, -.76, f * .225 + wv, -.55 + abs(f) * .07);
     X.stroke();
   }
@@ -126,13 +126,13 @@ const uni = (x, y, s, t, glow, run, ln, gt) => {
   hg.addColorStop(0, '#f3b52c'); hg.addColorStop(.5, '#ffe08a'); hg.addColorStop(1, '#fffdf0');
   X.fillStyle = hg;
   X.beginPath(); X.moveTo(-.058, -.9); X.lineTo(.058, -.9); X.lineTo(0, -HORN); X.closePath(); X.fill();
-  X.strokeStyle = '#d9992a'; X.lineWidth = .011;
   for (let i = 1; i < 11; i++) {
     const f = i / 11, w = .056 * (1 - f);
-    X.beginPath(); X.moveTo(-w, -.9 - f * .79); X.lineTo(w, -.9 - f * .79 - .03); X.stroke();
+    strk('#d9992a', .011);
+    X.moveTo(-w, -.9 - f * .79); X.lineTo(w, -.9 - f * .79 - .03); X.stroke();
   }
   if (glow) {
-    X.fillStyle = 'hsl(48 100% 70%/' + (.1 + .08 * sin(t * 7)) + ')';
+    X.fillStyle = hsl(48, 100, 70, .1 + .08 * sin(t * 7));
     X.beginPath(); X.arc(0, -.9, .9, 0, TAU); X.fill();
   }
   X.restore();

@@ -18,6 +18,15 @@ const exo = () => FLYT + APP.length * .12;
 const ban = s => { banS = s; banT = 2.6 };
 const APP = [];
 
+// Which way a unicorn leaves the screen: over whichever edge it is already nearest.
+const away = x => x > FX + FW / 2 ? -1 : 1;
+// Hand a stack to the flyaway. It rides the rainbow trail out while the body walks
+// back on from the far side, so the tower is copied before the caller clears it.
+// t is where the animation starts: a hair past zero to run it now, zero to arm it
+// for the ending, which ramps everyone's clock by hand to stagger the exodus.
+const launch = t => { flyStack = stack; flyX = HX; flyDir = away(HX); fly = t };
+const aLaunch = (a, t) => { a.fs = a.st; a.fx = a.x; a.fd = away(a.x); a.fl = t };
+
 const upCost = i => UP[i][2][G.u[i]];
 const upMax = i => G.u[i] >= UP[i][2].length;
 const uv = i => { const a = UV[i]; return a ? a[upMax(i) ? G.u[i] : G.u[i] + 1] : 0 };
@@ -73,8 +82,7 @@ const gain = n => {
   if (G.sold == BRG) {
     scr = 2; endT = 0; banT = 0; bye = 0; mI = 0; RID = 0;
     // Reuse the sale flyaway: give everyone a trail to ride out on.
-    APP.forEach(a => { a.fs = a.st; a.fx = a.x; a.fd = a.x > FX + FW / 2 ? -1 : 1; a.fl = 0 });
-    flyStack = stack; flyX = HX; flyDir = HX > FX + FW / 2 ? -1 : 1; fly = 0;
+    APP.forEach(a => aLaunch(a, 0)); launch(0);
   }
   return p;
 };
@@ -90,7 +98,7 @@ const sell = () => {
   const b = payout(); sSell();
   burst(HX, slotY(3), 26);
   flt(HX, slotY(6) - RS * 2, '+$' + b, '#7ce38b');
-  flyStack = stack; flyX = HX; flyDir = HX > FX + FW / 2 ? -1 : 1; fly = 1e-4;
+  launch(1e-4);
   stack = []; bad = -1; done = 0;
   save(); return 1;
 };
@@ -110,8 +118,11 @@ const cut = () => {
 };
 
 // --- apprentices ---------------------------------------------------------
+// One helper: x/px this and last frame's position, st its stack, t the pause before
+// it sells, ln/rn/g the lean, run amount and gait phase, sp the countdown to its
+// next guaranteed ring, tr the ring it is currently chasing, fl/fx/fd/fs its flyaway.
 const syncApp = () => {
-  while (APP.length < G.u[U_APP]) APP.push({ x: FX + FW * rr(.2, .8), st: [], t: 0, ln: 0, rn: 0, g: rr(0, 9), sp: rr(.3, AGAP), fl: 0, fx: 0, fd: 1, fs: [] });
+  while (APP.length < G.u[U_APP]) APP.push({ x: FX + FW * rr(.2, .8), px: 0, st: [], t: 0, ln: 0, rn: 0, g: rr(0, 9), sp: rr(.3, AGAP), tr: 0, fl: 0, fx: 0, fd: 1, fs: [] });
   APP.length = G.u[U_APP];
 };
 
@@ -120,7 +131,7 @@ const asell = (a, i) => {
   const uy = aUy(i), sc = aSc(i);
   burst(a.x, uy - SOFF[3] * sc, 14);
   flt(a.x, uy - SOFF[6] * sc - RS, '+$' + p, '#8fe0a8');
-  a.fs = a.st; a.fx = a.x; a.fd = a.x > FX + FW / 2 ? -1 : 1; a.fl = 1e-4;
+  aLaunch(a, 1e-4);
   a.st = []; sApp(7); save();
 };
 
@@ -134,7 +145,7 @@ const shove = (x, c, w, lo, hi) => {
 const apprentices = dt => {
   const lane = US * .45, sep = US * .4;
   const lo = FX + MG * .7, hi = FX + FW - MG * .7;
-  for (let j = 0; j < drop.length; j++) drop[j].tk = 0;
+  drop.forEach(r => r.tk = 0);
   APP.forEach((a, i) => {
     const ty = aTy(i), sc = aSc(i);
     a.st.forEach(r => { if (r.p < 1) r.p = min(1, r.p + dt * 5) });

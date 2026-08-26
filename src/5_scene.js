@@ -142,8 +142,8 @@ const bridge = () => {
   if (p <= 0) return;
   X.lineCap = 'butt';
   for (let i = 0; i < NR; i++) {
-    X.strokeStyle = RC(i, 8, p < 1 ? .4 : .62); X.lineWidth = bw;
-    X.beginPath(); X.arc(W / 2, UY, b0 + (NR - 1 - i) * bw, PI, PI + p * PI); X.stroke();
+    strk(RC(i, 8, p < 1 ? .4 : .62), bw);
+    X.arc(W / 2, UY, b0 + (NR - 1 - i) * bw, PI, PI + p * PI); X.stroke();
   }
 };
 
@@ -255,8 +255,7 @@ const drawFly = (fx, dir, by, sc, ft, st, al) => {
   X.globalAlpha = al * .82 * (1 - clamp((ft - FLYT * FLY_UP) / (FLYT * (1 - FLY_UP)), 0, 1));
   X.lineCap = 'round'; X.lineJoin = 'round';
   for (let k = 0; k < NR; k++) {
-    X.strokeStyle = RC(k, 4); X.lineWidth = bw;
-    X.beginPath();
+    strk(RC(k, 4), bw);
     for (let i = 0; i <= 16; i++) {
       const q = flyPos(fx, dir, by, sc, u * i / 16);
       i ? X.lineTo(q[0] + (k - 3) * bw, q[1]) : X.moveTo(q[0] + (k - 3) * bw, q[1]);
@@ -284,15 +283,22 @@ const pose = (ft, dir, bx, sc) => {
 
 const drawGlint = () => {
   const p = .55 + .45 * sin(TIME * 14), gy = max(FY, TY - FH * .3);
-  X.fillStyle = grad(0, TY, 0, gy, 'hsl(50 100% 80%/' + (.22 * p) + ')', '#fff3b000');
+  X.fillStyle = grad(0, TY, 0, gy, hsl(50, 100, 80, .22 * p), '#fff3b000');
   X.fillRect(HX - RS * .16, gy, RS * .32, TY - gy);
   star(HX, TY, RS * (.34 + .12 * p), TIME * 2, '#fffbe0');
-  star(HX, TY, RS * (.72 + .22 * p), -TIME * 1.3, 'hsl(50 100% 78%/' + (.4 * p) + ')');
+  star(HX, TY, RS * (.72 + .22 * p), -TIME * 1.3, hsl(50, 100, 78, .4 * p));
 };
 
 // One unicorn and its tower of rings. The player and every apprentice go through
 // here, so the flyaway, the run-in and the gait stay identical for all of them.
 // Returns whether the body was actually drawn: mid-sale it is still off-screen.
+//
+// The argument list is long because that is what sharing this path costs: the
+// player keeps its state in globals and an apprentice keeps the same state in an
+// object, so the only thing both can hand over is loose values. Reading order is
+// where (x, uy, sc), what (st, ty), how it is moving (ln0, gt, rn), how it looks
+// (ru = ruined ring index, glow, al, t) and finally the flyaway, which is the
+// four fields aLaunch writes: clock, launch x, direction, the stack that rides out.
 const drawUnit = (x, uy, sc, st, ty, ln0, gt, rn, ru, glow, al, t, ft, fx, fd, fs) => {
   X.globalAlpha = al;
   if (ft && ft < FLYT) drawFly(fx, fd, uy, sc, ft, fs, al);
@@ -355,7 +361,7 @@ const drawWorld = () => {
 
   if (badF > 0) {
     const g = X.createRadialGradient(W / 2, H / 2, min(W, H) * .28, W / 2, H / 2, max(W, H) * .62);
-    g.addColorStop(0, '#ff003c00'); g.addColorStop(1, 'hsl(345 100% 48%/' + badF * .42 + ')');
+    g.addColorStop(0, '#ff003c00'); g.addColorStop(1, hsl(345, 100, 48, badF * .42));
     X.fillStyle = g; X.fillRect(0, 0, W, H);
   }
 };

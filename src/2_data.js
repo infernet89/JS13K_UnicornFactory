@@ -1,4 +1,4 @@
-const VER = 'v0.43';
+const VER = 'v0.44';
 
 // Rainbow palette, one entry per ring colour, bottom of the horn first.
 const HUE = [354, 24, 52, 128, 190, 248, 305];

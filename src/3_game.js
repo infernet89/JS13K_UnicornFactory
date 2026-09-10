@@ -7,7 +7,7 @@ const G = { m: 0, sold: 0, junk: 0, mu: 0, st: 0, bst: 0, tm: 0, h: 0, u: UP.map
 
 let stack = [], bad = -1, done = 0, drop = [], utx = .5;
 let spawnT = 0, shake = 0, badF = 0, urun = 0, ulean = 0;
-let runT = 0, scrapT = 0, cutT = 0, autoT = 0, aimOn = 0, shopOn = 0, rstArm = 0, ugait = 0;
+let runT = 0, scrapT = 0, cutT = 0, autoT = 0, aimOn = 0, shopOn = 0, ugait = 0;
 let fly = 0, flyX = 0, flyDir = 1, flyStack = [];
 // scr: 0 title, 1 playing, 2 ending. banT/banS drive the centred banner.
 let scr = 0, endT = 0, rushT = 45, rush = 0, banT = 0, banS = '';
@@ -282,7 +282,7 @@ const upGame = dt => {
   if (badF > 0) badF = max(0, badF - dt * 1.6);
 };
 
-// --- debug + persistence -------------------------------------------------
+// --- persistence ---------------------------------------------------------
 // Every scalar in G is saved by name from one list, so adding a counter means
 // adding it here and nowhere else. Upgrade levels ride along as a second slot.
 const SK = ['m', 'sold', 'junk', 'mu', 'st', 'bst', 'tm', 'h'];
@@ -298,8 +298,3 @@ const load = () => {
   } catch (e) { }
 };
 
-// Debug only: wiping the save and reloading is the whole reset.
-const dbgReset = () => {
-  try { delete localStorage[KEY] } catch (e) { }
-  location.reload();
-};

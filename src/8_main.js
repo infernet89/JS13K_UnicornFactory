@@ -19,10 +19,6 @@ const click = (x, y) => {
   }
   if (y < TOP) {
     if (x > W - FS * 2.3) { G.mu = G.mu ? 0 : 1; save(); if (!G.mu) sGood(4) }
-    else if (x > RSX - FS * .3 && x < RSX + RSW + FS * .3) {
-      if (rstArm > 0) { rstArm = 0; dbgReset() } else { rstArm = 3; sBad() }
-    }
-    else if (x > DGX - FS * .3 && x < DGX + DGW + FS * .3) { G.m += DBG; save(); sBuy() }
     else if (x > SHX - FS * .4 && x < SHX + SHW + FS * .4) { shopOn = 1; sscr = 0; sCut() }
     return;
   }
@@ -72,7 +68,6 @@ const frame = t => {
     } else { endT += dt; bounce(dt) }
     if (endT > 4.2 && tapped()) { scr = 1; TC = 0; save() }
   } else {
-    if (rstArm > 0) rstArm = max(0, rstArm - dt);
     KB.forEach((e, i) => {
       const on = e[0].some(k => K[k]) ? 1 : 0;
       if (on && !kPre[i] && (e[2] || !shopOn)) e[1]();

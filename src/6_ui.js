@@ -39,11 +39,9 @@ const spk = (x, y, r, on) => {
   X.stroke();
 };
 
-// Small pill in the top bar. dash marks the two debug-only controls.
-const tab = (x, w, lab, fs, fill, line, col, dash) => {
-  if (dash) X.setLineDash([3, 2]);
+// Small pill in the top bar.
+const tab = (x, w, lab, fs, fill, line, col) => {
   plate(x, TOP * .18, w, TOP * .64, 6, fill, line);
-  if (dash) X.setLineDash([]);
   txt(lab, x + w / 2, TOP / 2, FS * fs, col, 'center', 'bold');
 };
 
@@ -73,10 +71,6 @@ const drawUI = () => {
 
   const cb = canBuy();
   tab(SHX, SHW, 'SHOP', .82, cb ? hsl(268, 62, 52 + 7 * sin(TIME * 5)) : '#2b1c48', cb ? '#d8bcff' : '#5a4488', cb ? '#fff' : '#a08ecb');
-  tab(DGX, DGW, '+$' + DBG, .68, '#3a2a14', '#c8912f', '#e8b64d', 1);
-  tab(RSX, RSW, rstArm > 0 ? 'SURE?' : 'RST', .64, rstArm > 0 ? '#8e1b33' : '#3a1620', '#d4577a', rstArm > 0 ? '#fff' : '#e0788f', 1);
-
-  txt(VER, W - FS * 2.6, TOP / 2 + FS * .06, FS * .72, '#9683c4', 'right');
   spk(W - FS * 1.4, TOP / 2, FS * .5, !G.mu);
 
   const n = BBX.length;

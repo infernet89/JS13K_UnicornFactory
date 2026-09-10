@@ -21,14 +21,15 @@ localStorage**. Two rules follow, and both are competition requirements:
 - The key is namespaced: `KEY = 'unicornfactory13k'` in `3_game.js`. Never shorten it
   to something generic that another entry could pick too.
 - **Never call `localStorage.clear()`** — it would wipe every other game's save. Touch
-  only `localStorage[KEY]`; the debug reset uses `delete localStorage[KEY]`.
+  only `localStorage[KEY]`.
 
 The same goes for throwaway test snippets run in the console: use
 `localStorage.removeItem(KEY)`, not `clear()`.
 
-The version badge next to the mute button comes from `VER` in `src/2_data.js` — bump it on every hand-off so it is obvious which build is loaded.
-
-**Remove before submission:** the `VER` badge and the two dashed debug buttons, `+$500` and `RST` (`DBG` in `src/2_data.js`, `dbgReset` in `src/3_game.js`, drawn in `drawUI`, handled in `click`).
+**Release build:** the development scaffolding is gone — the `VER` badge, the dashed
+`+$500` and `RST` buttons, `DBG`, `dbgReset` and the `rstArm` arming timer. The top bar
+is now money, streak, sold, SHOP and the speaker, nothing else. If you need any of it
+back while iterating, take it from the history rather than leaving a switch in the source.
 
 **Keep in the release:** the Konami code (`KON` in `8_main.js`) — up up down down left
 right left right B A pays $99999. It is a deliberate easter egg, not debug scaffolding.

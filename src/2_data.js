@@ -1,5 +1,3 @@
-const VER = 'v0.44';
-
 // Rainbow palette, one entry per ring colour, bottom of the horn first.
 const HUE = [354, 24, 52, 128, 190, 248, 305];
 const SAT = [88, 92, 95, 68, 85, 72, 80];
@@ -17,7 +15,6 @@ const FLYT = 1.05, FLY_UP = .62, FLY_IN = .44;
 const PAY = 5;       // dollars per unicorn
 const ASPD = .7;     // apprentice speed, relative to the player
 const AGAP = 2.2;    // seconds between an apprentice's guaranteed rings
-const DBG = 500;     // debug button payout
 const BRG = 130;     // unicorns sold to finish the rainbow bridge
 const MILE = [10, 30, 60, 100];   // sales that earn a banner
 const RUSHT = 7;     // seconds a rainbow rush lasts

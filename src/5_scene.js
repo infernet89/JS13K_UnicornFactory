@@ -7,7 +7,7 @@ let FX = 0, FY = 0, FW = 0, FH = 0;
 // Player unicorn: x, hoof line, body height, ring radius, catch line, edge margin.
 let HX = 0, UY = 0, US = 60, RS = 12, TY = 0, MG = 20;
 // Bottom action bar and top-bar buttons.
-let BBY = 0, BBW = 0, BBH = 0, SHX = 0, SHW = 0, DGX = 0, DGW = 0, RSX = 0, RSW = 0;
+let BBY = 0, BBW = 0, BBH = 0, SHX = 0, SHW = 0;
 // Upgrade panel.
 let SPX = 0, SPY = 0, SPW = 0, SPH = 0, SRH = 0, SHH = 0, SCOL = 1, SROW = 1, sscr = 0, smax = 0;
 // SOFF[i] = height of stack slot i above the hooves, at scale 1.
@@ -44,10 +44,10 @@ const layout = () => {
   BBW = (W - p * (nb + 1)) / nb; BBH = BOT - p * 1.3; BBY = H - BOT + p * .65;
   for (let i = 0; i < nb; i++) BBX[i] = p + i * (BBW + p);
   BBX.length = nb;
-  DGW = FS * 3.4; RSW = FS * 3; SHW = FS * (W < FS * 34 ? 4.2 : 4.8);
-  RSX = W - FS * 5.1 - RSW;
-  DGX = RSX - FS * .6 - DGW;
-  SHX = DGX - FS * .6 - SHW;
+  // The shop tab sits at the right end of the bar. Its right edge stops where the
+  // speaker's tap zone starts, so the two padded hit areas never overlap.
+  SHW = FS * (W < FS * 34 ? 4.2 : 4.8);
+  SHX = W - FS * 2.7 - SHW;
 
   // The shop sizes itself to the window rather than always scrolling: as many
   // columns as the width affords, then rows squeezed until every upgrade is on

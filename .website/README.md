@@ -20,3 +20,8 @@ Every action has an on-screen button too, so it plays fine on a phone.
 
 - **The soundtrack gains a layer every few upgrades**, so the factory sounds richer the more you have built. Headphones recommended for the ending.
 - There is a cheat code in here. You already know it.
+
+**Full playthrough on youtube:**/
+https://www.youtube.com/watch?v=rWbeKZPHktY
+
+AI was used during the development of this game
